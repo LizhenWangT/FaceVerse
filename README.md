@@ -1,5 +1,5 @@
 # FaceVerse
-### FaceVerse: a Fine-grained and Detail-changeable 3D Neural Face Model from a Hybrid Dataset
+### FaceVerse: a Fine-grained and Detail-controllable 3D Face Morphable Model from a Hybrid Dataset
 Lizhen Wang, Zhiyuan Chen, Tao Yu, Chenguang Ma, Liang Li, Yebin Liu  CVPR 2022
 
 [[Dataset]](https://github.com/LizhenWangT/FaceVerse-Dataset)
@@ -23,7 +23,7 @@ Single-image fitting results using FaceVerse model.
 If you use this dataset for your research, please consider citing:
 ```
 @InProceedings{wang2022faceverse,
-title={FaceVerse: a Fine-grained and Detail-changeable 3D Neural Face Model from a Hybrid Dataset},
+title={FaceVerse: a Fine-grained and Detail-controllable 3D Face Morphable Model from a Hybrid Dataset},
 author={Wang, Lizhen and Chen, Zhiyua and Yu, Tao and Ma, Chenguang and Li, Liang and Liu, Yebin},
 booktitle={IEEE Conference on Computer Vision and Pattern Recognition (CVPR2022)},
 month={June},
