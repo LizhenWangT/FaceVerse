@@ -8,7 +8,7 @@ import argparse
 from model import get_faceverse
 import model.losses as losses
 
-from online_reader import OnlineReader
+from data_reader import OnlineReader
 from util_functions import get_length, ply_from_array_color
 
 
@@ -63,7 +63,7 @@ def tracking(args, device):
             num_iters_rf = args.rest_rf_iters
             num_iters_nrf = args.rest_nrf_iters
 
-        # rigid fitting using only landmarks
+        # fitting using only landmarks
         for i in range(num_iters_rf):
             rigid_optimizer.zero_grad()
             
@@ -76,7 +76,7 @@ def tracking(args, device):
             total_loss.backward()
             rigid_optimizer.step()
         
-        # non-rigid fitting
+        # fitting with differentiable rendering
         for i in range(num_iters_nrf):
             nonrigid_optimizer.zero_grad()
 
@@ -138,8 +138,6 @@ def tracking(args, device):
             vertices = pred_dict['vs'].detach().cpu().squeeze().numpy()
             colors = pred_dict['face_texture'].detach().cpu().squeeze().numpy()
             colors = np.clip(colors, 0, 255).astype(np.uint8)
-            #keypoints = faceverse_model.kp_inds.detach().cpu().squeeze().numpy()
-            #colors[keypoints, 0] = 255
             ply_from_array_color(vertices, colors, faceverse_dict['tri'], 'test.ply')
     cv2.destroyAllWindows()
     onreader.join()
@@ -150,24 +148,24 @@ if __name__ == '__main__':
 
     parser.add_argument('--version', type=int, default=1,
                         help='FaceVerse model version.')
-    parser.add_argument('--tar_size', type=int, default=256,
+    parser.add_argument('--tar_size', type=int, default=512,
                         help='size for rendering window. We use a square window.')
     parser.add_argument('--padding_ratio', type=float, default=1.0,
                         help='enlarge the face detection bbox by a margin.')
     parser.add_argument('--recon_model', type=str, default='faceverse',
                         help='choose a 3dmm model, default: faceverse')
     parser.add_argument('--first_rf_iters', type=int, default=500,
-                        help='iteration number of rigid fitting for the first frame in video fitting.')
+                        help='iteration number of landmark fitting for the first frame in video fitting.')
     parser.add_argument('--first_nrf_iters', type=int, default=300,
-                        help='iteration number of non-rigid fitting for the first frame in video fitting.')
+                        help='iteration number of differentiable fitting for the first frame in video fitting.')
     parser.add_argument('--rest_rf_iters', type=int, default=15,
-                        help='iteration number of rigid fitting for the remaining frames in video fitting.')
+                        help='iteration number of landmark fitting for the remaining frames in video fitting.')
     parser.add_argument('--rest_nrf_iters', type=int, default=15,
-                        help='iteration number of non-rigid fitting for the remaining frames in video fitting.')
+                        help='iteration number of differentiable fitting for the remaining frames in video fitting.')
     parser.add_argument('--rf_lr', type=float, default=1e-2,
-                        help='learning rate for rigid fitting')
+                        help='learning rate for landmark fitting')
     parser.add_argument('--nrf_lr', type=float, default=1e-2,
-                        help='learning rate for non-rigid fitting')
+                        help='learning rate for differentiable fitting')
     parser.add_argument('--lm_loss_w', type=float, default=3e3,
                         help='weight for landmark loss')
     parser.add_argument('--rgb_loss_w', type=float, default=1.6,
@@ -178,21 +176,11 @@ if __name__ == '__main__':
                         help='weight for expression coefficient regularizer')
     parser.add_argument('--tex_reg_w', type=float, default=3e-4,
                         help='weight for texture coefficient regularizer')
-    parser.add_argument('--rot_reg_w', type=float, default=1,
-                        help='weight for rotation regularizer')
-    parser.add_argument('--trans_reg_w', type=float, default=1,
-                        help='weight for translation regularizer')
-
     parser.add_argument('--tex_w', type=float, default=1,
                         help='weight for texture reflectance loss.')
-    parser.add_argument('--cache_folder', type=str, default='fitting_cache',
-                        help='path for the cache folder')
-    parser.add_argument('--nframes_shape', type=int, default=16,
-                        help='number of frames used to estimate shape coefficient in video fitting')
 
     args = parser.parse_args()
 
-    args.tar_size = 512
     device = 'cuda'
     
     tracking(args, device)

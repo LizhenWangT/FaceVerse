@@ -78,3 +78,7 @@ end_header\n'''.format(num_points, num_triangles)
             f.write(row)
 
 
+def adjust_learning_rate(optimizer, lr):
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+

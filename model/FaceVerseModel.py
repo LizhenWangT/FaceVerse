@@ -261,7 +261,7 @@ class FaceVerseModel(nn.Module):
         arrH.append(a2 * c2 * 0.5 * (nx.pow(2) - ny.pow(2)))
 
         H = torch.stack(arrH, 1)
-        Y = H.view(self.batch_size, self.num_vertex, 9)
+        Y = H.view(self.batch_size, face_texture.shape[1], 9)
         lighting = Y.bmm(gamma)
 
         face_color = face_texture * lighting
