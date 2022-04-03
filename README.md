@@ -1,5 +1,5 @@
 # FaceVerse
-### FaceVerse: a Fine-grained and Detail-controllable 3D Face Morphable Model from a Hybrid Dataset
+## FaceVerse: a Fine-grained and Detail-controllable 3D Face Morphable Model from a Hybrid Dataset
 Lizhen Wang, Zhiyuan Chen, Tao Yu, Chenguang Ma, Liang Li, Yebin Liu  CVPR 2022
 
 [[Dataset]](https://github.com/LizhenWangT/FaceVerse-Dataset)
@@ -12,28 +12,28 @@ We present FaceVerse, a fine-grained 3D Neural Face Model, which is built from h
 ![results](./docs/results.jpg)
 Single-image fitting results using FaceVerse model.
 
-### FaceVerse PCA model and pre-trained checkpoints
-Please download the zip file of version 0 or version 1 (recommended) and unzip it in the './data' folder.
+## FaceVerse PCA model and pre-trained checkpoints
+Please download the zip file of **version 0** or **version 1** (recommended) and unzip it in the `./data` folder.
 
-FaceVerse version 0 [[download]](https://drive.google.com/file/d/1V80ntpWj1BJb7jriWR2ipdcSQIFTHOwv/view?usp=sharing): paper version.
+**FaceVerse version 0** [[download]](https://drive.google.com/file/d/1V80ntpWj1BJb7jriWR2ipdcSQIFTHOwv/view?usp=sharing): paper version.
 
 ![v0](./docs/v0.jpg)
 
 Single-image reconstruction results of version 0 (base model, detail model and expression refined final model).
 
-FaceVerse version 1 [[download]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing):
+**FaceVerse version 1** [[download]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing):
 
-1. Refine the shape of the base PCA model: symmetrical and more detailed.
+- Refine the shape of the base PCA model: symmetrical and more detailed.
 
-2. Remove the points inside the mouth.
+- Remove the points inside the mouth.
 
-2. Refine the expression PCA components.
+- Refine the expression PCA components.
 
 ![v1](./docs/v1.jpg)
 
-Single-image reconstruction results of version 1 (base model, detail model and expression refined final model).
+Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
 
-### Requirements
+## Requirements
 
 - Python 3.9
 - PyTorch 1.11.0
@@ -48,47 +48,47 @@ Single-image reconstruction results of version 1 (base model, detail model and e
 
 You need to compile the ops provided by [stylegan2-pytorch](https://github.com/rosinality/stylegan2-pytorch) using ninja:
 
-'''
+```
 cd third_libs/stylegan_ops
 python3 setup.py install
-'''
+```
 
 
-### Single-image fitting
+## Single-image fitting
 Reconstructing a 3D face from a single image. There are three processes: 
 (a) reconstructed by PCA model; (b) refined by the detailed generator; (c) refined by the expression generator.
 
 An example input with a image folder (sampled from the [FFHQ](https://github.com/NVlabs/ffhq-dataset) dataset):
 
-'''
+```
 python3 fit_images.py --version 1 --input example/images --res_folder example/image_results --save_ply
-'''
+```
 
 Note: the detailed refinement is based on differentiable rendering, which is quite time-consuming (over 10 minutes).
 
 
-### Video-based tracking using our PCA base model
+## Video-based tracking using our PCA base model
 
 ![offline_tracking](./docs/offline_tracking.gif)
 
 Offline tracking input with a video (our code will crop the face region using the first frame):
 
-'''
+```
 python tracking_offline.py --input example/videos/test.mp4 --res_folder example/video_results
-'''
+```
 
 
 Online tracking using your PC camera (our code will crop the face region using the first frame):
 
-'''
+```
 python tracking_online.py
-'''
+```
 
 ![online_tracking](./docs/online_tracking.gif)
 
 Note: the tracking is based on differentiable rendering and only has 2 fps.
 
-### Citation
+## Citation
 If you use this dataset for your research, please consider citing:
 ```
 @InProceedings{wang2022faceverse,
@@ -100,11 +100,11 @@ year={2022},
 }
 ```
 
-### Contact
+## Contact
 - Lizhen Wang [(wlz18@mails.tsinghua.edu.cn)](wlz18@mails.tsinghua.edu.cn)
 - Zhiyuan Chen [(juzhen.czy@antfin.com)](juzhen.czy@antfin.com)
 - Yebin Liu [(liuyebin@mail.tsinghua.edu.cn)](mailto:liuyebin@mail.tsinghua.edu.cn)
 
-### Acknowledgement & License
+## Acknowledgement & License
 The code is partially borrowed from [3DMM-Fitting-Pytorch](https://github.com/ascust/3DMM-Fitting-Pytorch), [stylegan2-pytorch](https://github.com/rosinality/stylegan2-pytorch) and [OpenSeeFace](https://github.com/emilianavt/OpenSeeFace). And many thanks to the volunteers participated in data collection. Our License 
 
