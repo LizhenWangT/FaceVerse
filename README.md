@@ -12,7 +12,7 @@ Tsinghua University & Ant Group
 >We present FaceVerse, a fine-grained 3D Neural Face Model, which is built from hybrid East Asian face datasets containing 60K fused RGB-D images and 2K high-fidelity 3D head scan models. A novel coarse-to-fine structure is proposed to take better advantage of our hybrid dataset. In the coarse module, we generate a base parametric model from large-scale RGB-D images, which is able to predict accurate rough 3D face models in different genders, ages, etc. Then in the fine module, a conditional StyleGAN architecture trained with high-fidelity scan models is introduced to enrich elaborate facial geometric and texture details. Note that different from previous methods, our base and detailed modules are both changeable, which enables an innovative application of adjusting both the basic attributes and the facial details of 3D face models. Furthermore, we propose a single-image fitting framework based on differentiable rendering. Rich experiments show that our method outperforms the state-of-the-art methods.
 
 ![results](./docs/results.jpg)
-Single-image fitting results using FaceVerse model.
+**Fig.1** Single-image fitting results using FaceVerse model.
 
 ## FaceVerse PCA model and pre-trained checkpoints
 Please download the zip file of **version 0** or **version 1** (recommended) and unzip it in the `./data` folder.
@@ -21,7 +21,7 @@ Please download the zip file of **version 0** or **version 1** (recommended) and
 
 ![v0](./docs/v0.jpg)
 
-Single-image reconstruction results of version 0 (base model, detail model and expression refined final model).
+**Fig.2** Single-image reconstruction results of version 0 (base model, detail model and expression refined final model).
 
 **FaceVerse version 1** [[download]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing):
 
@@ -33,7 +33,7 @@ Single-image reconstruction results of version 0 (base model, detail model and e
 
 ![v1](./docs/v1.jpg)
 
-Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
+**Fig.3** Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
 
 ## Requirements
 
