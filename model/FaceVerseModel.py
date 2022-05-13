@@ -8,7 +8,7 @@ from pytorch3d.renderer import TexturesVertex
 
 class FaceVerseModel(nn.Module):
     def __init__(self, model_dict, batch_size=1,
-                 focal=1315, img_size=256, device='cuda:0'):
+                 focal=1315, img_size=256, use_simplification=False, device='cuda:0'):
         super(FaceVerseModel, self).__init__()
 
         self.focal = focal
@@ -23,24 +23,42 @@ class FaceVerseModel(nn.Module):
 
         self.renderer = ModelRenderer(self.focal, self.img_size, self.device)
         
-        self.skinmask = torch.tensor(model_dict['skinmask'], requires_grad=False, device=self.device)
+        if use_simplification:
+            self.select_id = model_dict['select_id']
+            self.select_id_tris = np.vstack((self.select_id * 3, self.select_id * 3 + 1, self.select_id * 3 + 2)).transpose().flatten()
+            self.skinmask = torch.tensor(model_dict['skinmask_select'], requires_grad=False, device=self.device)
 
-        self.kp_inds = torch.tensor(model_dict['keypoints'].reshape(-1, 1), requires_grad=False).squeeze().long().to(self.device)
+            self.kp_inds = torch.tensor(model_dict['keypoints_select'].reshape(-1, 1), requires_grad=False).squeeze().long().to(self.device)
 
-        self.meanshape = torch.tensor(model_dict['meanshape'].reshape(1, -1), dtype=torch.float32, requires_grad=False, device=self.device)
-        self.meantex = torch.tensor(model_dict['meantex'].reshape(1, -1), dtype=torch.float32, requires_grad=False, device=self.device)
+            self.meanshape = torch.tensor(model_dict['meanshape'].reshape(1, -1)[:, self.select_id_tris], dtype=torch.float32, requires_grad=False, device=self.device)
+            self.meantex = torch.tensor(model_dict['meantex'].reshape(1, -1)[:, self.select_id_tris], dtype=torch.float32, requires_grad=False, device=self.device)
 
-        self.idBase = torch.tensor(model_dict['idBase'], dtype=torch.float32, requires_grad=False, device=self.device)
-        self.expBase = torch.tensor(model_dict['exBase'], dtype=torch.float32, requires_grad=False, device=self.device)
-        self.texBase = torch.tensor(model_dict['texBase'], dtype=torch.float32, requires_grad=False, device=self.device)
+            self.idBase = torch.tensor(model_dict['idBase'][self.select_id_tris], dtype=torch.float32, requires_grad=False, device=self.device)
+            self.expBase = torch.tensor(model_dict['exBase'][self.select_id_tris], dtype=torch.float32, requires_grad=False, device=self.device)
+            self.texBase = torch.tensor(model_dict['texBase'][self.select_id_tris], dtype=torch.float32, requires_grad=False, device=self.device)
 
-        self.tri = torch.tensor(model_dict['tri'], dtype=torch.int64, requires_grad=False, device=self.device)
-        self.point_buf = torch.tensor(model_dict['point_buf'], dtype=torch.int64, requires_grad=False, device=self.device)
+            self.tri = torch.tensor(model_dict['tri_select'], dtype=torch.int64, requires_grad=False, device=self.device)
+            self.point_buf = torch.tensor(model_dict['point_buf_select'], dtype=torch.int64, requires_grad=False, device=self.device)
+        
+        else:
+            self.skinmask = torch.tensor(model_dict['skinmask'], requires_grad=False, device=self.device)
 
-        self.num_vertex = model_dict['meanshape'].reshape(-1, 3).shape[0]
-        self.id_dims = model_dict['idBase'].shape[1]
-        self.tex_dims = model_dict['texBase'].shape[1]
-        self.exp_dims = model_dict['exBase'].shape[1]
+            self.kp_inds = torch.tensor(model_dict['keypoints'].reshape(-1, 1), requires_grad=False).squeeze().long().to(self.device)
+
+            self.meanshape = torch.tensor(model_dict['meanshape'].reshape(1, -1), dtype=torch.float32, requires_grad=False, device=self.device)
+            self.meantex = torch.tensor(model_dict['meantex'].reshape(1, -1), dtype=torch.float32, requires_grad=False, device=self.device)
+
+            self.idBase = torch.tensor(model_dict['idBase'], dtype=torch.float32, requires_grad=False, device=self.device)
+            self.expBase = torch.tensor(model_dict['exBase'], dtype=torch.float32, requires_grad=False, device=self.device)
+            self.texBase = torch.tensor(model_dict['texBase'], dtype=torch.float32, requires_grad=False, device=self.device)
+
+            self.tri = torch.tensor(model_dict['tri'], dtype=torch.int64, requires_grad=False, device=self.device)
+            self.point_buf = torch.tensor(model_dict['point_buf'], dtype=torch.int64, requires_grad=False, device=self.device)
+
+        self.num_vertex = self.meanshape.shape[1] // 3
+        self.id_dims = self.idBase.shape[1]
+        self.tex_dims = self.texBase.shape[1]
+        self.exp_dims = self.expBase.shape[1]
         self.all_dims = self.id_dims + self.tex_dims + self.exp_dims
 
         self.init_coeff_tensors()

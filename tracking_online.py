@@ -26,7 +26,7 @@ def init_optim_with_id(args, faceverse_model):
 
 
 def tracking(args, device):
-    faceverse_model, faceverse_dict = get_faceverse(version=args.version, batch_size=1, focal=1315, img_size=args.tar_size, device=device)
+    faceverse_model, faceverse_dict = get_faceverse(version=args.version, batch_size=1, focal=1315, img_size=args.tar_size, use_simplification=args.use_simplification, device=device)
     lm_weights = losses.get_lm_weights(device)
     onreader = OnlineReader(camera_id=0, width=1920, height=1080)
     onreader.start()
@@ -75,6 +75,10 @@ def tracking(args, device):
             
             total_loss.backward()
             rigid_optimizer.step()
+
+            if args.version == 2:
+                with torch.no_grad():
+                    faceverse_model.exp_tensor[faceverse_model.exp_tensor < 0] *= 0
         
         # fitting with differentiable rendering
         for i in range(num_iters_nrf):
@@ -98,6 +102,10 @@ def tracking(args, device):
 
             loss.backward()
             nonrigid_optimizer.step()
+            
+            if args.version == 2:
+                with torch.no_grad():
+                    faceverse_model.exp_tensor[faceverse_model.exp_tensor < 0] *= 0
         
         # show data
         with torch.no_grad():
@@ -146,8 +154,10 @@ def tracking(args, device):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="FaceVerse online tracker")
 
-    parser.add_argument('--version', type=int, default=1,
+    parser.add_argument('--version', type=int, default=2,
                         help='FaceVerse model version.')
+    parser.add_argument('--use_simplification', action='store_true',
+                        help='use the simplified FaceVerse model.')
     parser.add_argument('--tar_size', type=int, default=512,
                         help='size for rendering window. We use a square window.')
     parser.add_argument('--padding_ratio', type=float, default=1.0,

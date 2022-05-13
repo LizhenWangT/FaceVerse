@@ -26,7 +26,7 @@ def init_optim_with_id(args, faceverse_model):
 
 
 def tracking(args, device):
-    faceverse_model, faceverse_dict = get_faceverse(version=args.version, batch_size=1, focal=1315, img_size=args.tar_size, device=device)
+    faceverse_model, faceverse_dict = get_faceverse(version=args.version, batch_size=1, focal=1315, img_size=args.tar_size, use_simplification=args.use_simplification, device=device)
     lm_weights = losses.get_lm_weights(device)
     offreader = OfflineReader(args.input)
     print(args.input, 'FPS:', offreader.fps)
@@ -81,6 +81,10 @@ def tracking(args, device):
             
             total_loss.backward()
             rigid_optimizer.step()
+
+            if args.version == 2:
+                with torch.no_grad():
+                    faceverse_model.exp_tensor[faceverse_model.exp_tensor < 0] *= 0
         
         # fitting with differentiable rendering
         for i in range(num_iters_nrf):
@@ -104,6 +108,10 @@ def tracking(args, device):
 
             loss.backward()
             nonrigid_optimizer.step()
+        
+            if args.version == 2:
+                with torch.no_grad():
+                    faceverse_model.exp_tensor[faceverse_model.exp_tensor < 0] *= 0
         
         # save data
         with torch.no_grad():
@@ -143,13 +151,15 @@ if __name__ == '__main__':
 
     parser.add_argument('--input', type=str, required=True,
                         help='input video path')
+    parser.add_argument('--use_simplification', action='store_true',
+                        help='use the simplified FaceVerse model.')
     parser.add_argument('--res_folder', type=str, required=True,
                         help='output directory')
     parser.add_argument('--save_ply', action="store_true",
                         help='save the output ply or not')
     parser.add_argument('--save_coeff', action="store_true",
                         help='save the output coeff or not')
-    parser.add_argument('--version', type=int, default=1,
+    parser.add_argument('--version', type=int, default=2,
                         help='FaceVerse model version.')
     parser.add_argument('--tar_size', type=int, default=512,
                         help='size for rendering window. We use a square window.')

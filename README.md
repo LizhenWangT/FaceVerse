@@ -35,6 +35,23 @@ Please download the zip file of **version 0** or **version 1** (recommended) and
 
 **Fig.3** Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
 
+**FaceVerse version 2** [[download]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing):
+
+- Fit the expression components to the 52 blendshapes defined by Apple. Please check 'exp_name_list' in faceverse_simple_v2.npy for the mapping relation.
+
+- Provide a simplification option (normal with 28632 vertices, simplified with 6335 vertices): you can use the selected points of FaceVerse v2 by:
+
+```
+python tracking_online.py  --version 2 --use_simplification
+python tracking_offline.py --input example/videos/test.mp4 --res_folder example/video_results --version 2 --use_simplification
+```
+
+- Refine the shape of the base PCA model: orthogonalization.
+
+![v2](./docs/tracking_v2.gif)
+
+**Fig.4** Real-time online tracking results (30 fps) of **version 2**. The real-time version is accelerated by point-base rendering using cuda and this version has not been released.
+
 ## Requirements
 
 - Python 3.9
@@ -73,17 +90,17 @@ Note: the detailed refinement is based on differentiable rendering, which is qui
 
 ![offline_tracking](./docs/offline_tracking.gif)
 
-Offline tracking input with a video (our code will crop the face region using the first frame):
+Offline tracking input with a video (our code will crop the face region using the first frame, --use_simplification can be only used for version >= 2):
 
 ```
-python tracking_offline.py --input example/videos/test.mp4 --res_folder example/video_results
+python tracking_offline.py --input example/videos/test.mp4 --res_folder example/video_results --version 2
 ```
 
 
-Online tracking using your PC camera (our code will crop the face region using the first frame):
+Online tracking using your PC camera (our code will crop the face region using the first frame, --use_simplification can be only used for version >= 2):
 
 ```
-python tracking_online.py
+python tracking_online.py  --version 2
 ```
 
 ![online_tracking](./docs/online_tracking.gif)

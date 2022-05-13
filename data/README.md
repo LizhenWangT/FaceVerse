@@ -1,9 +1,15 @@
 ### FaceVerse version 0
 id_dim 120, exp_dim 64, tex_dim 200
-base uv in 256 x 256 (not symmetrical)
+base uv in 200 x 200 (not symmetrical)
 
 ### FaceVerse version 1
 id_dim 150, exp_dim 74, tex_dim 251
 base uv in 199 x 199 (symmetrical)
+
+### FaceVerse version 2
+id_dim 150, exp_dim 52, tex_dim 251
+base uv in 199 x 199 (symmetrical)
+normal version: 28632 vertices 
+simplified version: 6335 vertices 
 
 
