@@ -48,8 +48,8 @@ python tracking_offline.py --input example/videos/test.mp4 --res_folder example/
 
 - Refine the shape of the base PCA model: orthogonalization.
 
-<img src="./docs/tracking_v2.gif" width="80%">
-<img src="./docs/tracking_v2_2.gif" width="80%">
+<img src="./docs/tracking_v2.gif" width="30%">
+<img src="./docs/tracking_v2_2.gif" width="30%">
 
 **Fig.4** Real-time online tracking results (30 fps) of **version 2**. The real-time version is accelerated by point-base rendering using cuda and this version has not been released.
 
