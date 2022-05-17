@@ -35,7 +35,7 @@ Please download the zip file of **version 0** or **version 1** (recommended) and
 
 **Fig.3** Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
 
-**FaceVerse version 2** [[download]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing):
+**FaceVerse version 2** [[download]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing) (only the PCA base model for video tracking, please use version 1 for image fitting):
 
 - Fit the expression components to the 52 blendshapes defined by Apple. Please check 'exp_name_list' in faceverse_simple_v2.npy for the mapping relation.
 
@@ -51,7 +51,7 @@ python tracking_offline.py --input example/videos/test.mp4 --res_folder example/
 <img src="./docs/tracking_v2.gif" width="50%">
 <img src="./docs/tracking_v2_2.gif" width="50%">
 
-**Fig.4** Real-time online tracking results (30 fps) of **version 2**. The real-time version is accelerated by point-base rendering using cuda and this version has not been released.
+**Fig.4** Real-time online tracking results (30 fps) of **version 2**. The real-time version is accelerated by point-base rendering using cuda (this version has not been released).
 
 ## Requirements
 
