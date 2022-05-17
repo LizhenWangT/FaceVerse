@@ -117,9 +117,9 @@ class FaceVerseModel(nn.Module):
         return coeffs
 
     def get_packed_tensors(self):
-        return self.merge_coeffs(self.id_tensor.repeat(self.batch_size, 1),
+        return self.merge_coeffs(self.id_tensor,
                                  self.exp_tensor,
-                                 self.tex_tensor.repeat(self.batch_size, 1),
+                                 self.tex_tensor,
                                  self.rot_tensor, self.gamma_tensor,
                                  self.trans_tensor)
 
@@ -230,10 +230,10 @@ class FaceVerseModel(nn.Module):
         cosz = torch.cos(angles[:, 2])
 
         if self.batch_size != 1:
-            rotXYZ = self.rotXYZ.repeat(1, self.batch_size * 3, 1, 1)
+            rotXYZ = self.rotXYZ.repeat(1, self.batch_size, 1, 1)
         else:
             rotXYZ = self.rotXYZ.detach().clone()
-
+        
         rotXYZ[0, :, 1, 1] = cosx
         rotXYZ[0, :, 1, 2] = -sinx
         rotXYZ[0, :, 2, 1] = sinx

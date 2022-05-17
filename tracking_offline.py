@@ -117,14 +117,14 @@ def tracking(args, device):
         with torch.no_grad():
             pred_dict = faceverse_model(faceverse_model.get_packed_tensors(), render=True, texture=True)
             rendered_img_c = pred_dict['rendered_img']
-            rendered_img_c = np.clip(rendered_img_c.cpu().squeeze().numpy(), 0, 255)
+            rendered_img_c = np.clip(rendered_img_c.cpu().numpy(), 0, 255)
             pred_dict = faceverse_model(faceverse_model.get_packed_tensors(), render=True, texture=False)
             rendered_img_r = pred_dict['rendered_img']
-            rendered_img_r = np.clip(rendered_img_r.cpu().squeeze().numpy(), 0, 255)
-        mask_img_c = (rendered_img_c[:, :, 3:4] > 0).astype(np.uint8)
-        drive_img_c = rendered_img_c[:, :, :3].astype(np.uint8) * mask_img_c + align * (1 - mask_img_c)
-        mask_img_r = (rendered_img_r[:, :, 3:4] > 0).astype(np.uint8)
-        drive_img_r = rendered_img_r[:, :, :3].astype(np.uint8) * mask_img_r + align * (1 - mask_img_r)
+            rendered_img_r = np.clip(rendered_img_r.cpu().numpy(), 0, 255)
+        mask_img_c = (rendered_img_c[0, :, :, 3:4] > 0).astype(np.uint8)
+        drive_img_c = rendered_img_c[0, :, :, :3].astype(np.uint8) * mask_img_c + align * (1 - mask_img_c)
+        mask_img_r = (rendered_img_r[0, :, :, 3:4] > 0).astype(np.uint8)
+        drive_img_r = rendered_img_r[0, :, :, :3].astype(np.uint8) * mask_img_r + align * (1 - mask_img_r)
         drive_img = np.concatenate([align, drive_img_c, drive_img_r], axis=1)
         if frame_ind == 0:
             start_t = time.time()
