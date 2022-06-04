@@ -12,7 +12,7 @@ class OnlineReader(threading.Thread):
         self.camera_id = camera_id
         self.height, self.width = height, width#480, 640# 1080, 1920 480,640 600,800 720,1280 
         self.frame = np.zeros((height, width, 3), dtype=np.uint8)
-        self.lms = np.zeros((66, 2), dtype=np.uint8)
+        self.lms = np.zeros((66, 2), dtype=np.int64)
         self.cap = cv2.VideoCapture(camera_id)
         self.cap.set(3, width)
         self.cap.set(4, height)
