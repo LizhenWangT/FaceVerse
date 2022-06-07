@@ -4,7 +4,7 @@
 
 Tsinghua University & Ant Group
 
-[[Dataset]](https://github.com/LizhenWangT/FaceVerse-Dataset) [[Project Page]](http://www.liuyebin.com/faceverse/faceverse.html)
+[[Dataset]](https://github.com/LizhenWangT/FaceVerse-Dataset) [[Project Page]](http://www.liuyebin.com/faceverse/faceverse.html) [[Arxiv]](https://arxiv.org/abs/2203.14057)
 
 ![teaser](./docs/cover.jpg)
 
