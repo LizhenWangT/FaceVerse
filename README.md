@@ -17,13 +17,13 @@ Tsinghua University & Ant Group
 ## FaceVerse PCA model and pre-trained checkpoints
 Please download the zip file of **version 0** or **version 1** (recommended) and unzip it in the `./data` folder.
 
-**FaceVerse version 0** [[download]](https://drive.google.com/file/d/1V80ntpWj1BJb7jriWR2ipdcSQIFTHOwv/view?usp=sharing): paper version.
+**FaceVerse version 0** Download:[[Google Drive]](https://drive.google.com/file/d/1V80ntpWj1BJb7jriWR2ipdcSQIFTHOwv/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1DNA3661303YUQG4QyO0Xvg)(6l10): paper version.
 
 ![v0](./docs/v0.jpg)
 
 **Fig.2** Single-image reconstruction results of version 0 (base model, detail model and expression refined final model).
 
-**FaceVerse version 1** [[download]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing):
+**FaceVerse version 1** Download:[[Google Drive]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1pUva9hBWP2ZONLRlWY6R1g)(x6wk):
 
 - Refine the shape of the base PCA model: symmetrical and more detailed.
 
@@ -35,7 +35,7 @@ Please download the zip file of **version 0** or **version 1** (recommended) and
 
 **Fig.3** Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
 
-**FaceVerse version 2** [[download]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing) (only the PCA base model for video tracking, please use version 1 for image fitting):
+**FaceVerse version 2** Download:[[Google Drive]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1eRTafK8jAy9pTGyKfy2Biw)(9n9e) (only the PCA base model for video tracking, please use version 1 for image fitting):
 
 - Fit the expression components to the 52 blendshapes defined by Apple. Please check 'exp_name_list' in faceverse_simple_v2.npy for the mapping relation.
 
