@@ -81,11 +81,10 @@ Reconstructing a 3D face from a single image. There are three processes:
 An example input with a image folder (sampled from the [FFHQ](https://github.com/NVlabs/ffhq-dataset) dataset):
 
 ```
-python3 fit_images.py --version 1 --input example/images --res_folder example/image_results --save_ply
+python3 fit_images.py --version 1 --input example/images --res_folder example/image_results --save_ply --align
 ```
 
-Note: the detailed refinement is based on differentiable rendering, which is quite time-consuming (over 10 minutes).
-
+Note: the detailed refinement is based on differentiable rendering, which is quite time-consuming (over 10 minutes). `--align` is used to crop the input image.
 
 ## Video-based tracking using our PCA base model
 
