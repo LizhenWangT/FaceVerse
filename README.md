@@ -61,7 +61,8 @@ python tracking_offline.py --input example/videos/test.mp4 --res_folder example/
 
 Full head model & jittor-based tracking has been released now, See [FaceVersev3](./faceversev3_jittor/README.md) in `faceversev3_jittor` for more details.
 
-![v1](./docs/fv3.jpg)
+![v3](./docs/fv3.jpg)
+<img src="./docs/tracking_v3.gif" width="50%">
 
 **Fig.5** FaceVerse version 3.
 
