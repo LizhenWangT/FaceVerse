@@ -31,6 +31,9 @@ class FaceVerseModel(nn.Module):
         
         self.meanshape = jt.array(meanshape.reshape(1, -1), dtype=jt.float32).stop_grad()
         self.meantex = jt.array(model_dict['meantex'].reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1)
+        uvtex = model_dict['uvtex']
+        uvtex[:self.ver_inds[0]] *= model_dict['face_mask'][:self.ver_inds[0], None]
+        self.uvtex = jt.array(uvtex.reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1).reshape(self.batch_size, -1, 3)
 
         idBase = model_dict['idBase'].reshape(-1, 150)
         exBase = model_dict['exBase_52'].reshape(-1, 3, 52)
@@ -115,7 +118,7 @@ class FaceVerseModel(nn.Module):
                                  self.rot_tensor, self.gamma_tensor,
                                  self.trans_tensor, self.eye_tensor)
 
-    def execute(self, coeffs, render=False, surface=False, use_color=True):
+    def execute(self, coeffs, render=False, surface=False, use_color=True, render_uv=False):
         id_coeff, exp_coeff, tex_coeff, angles, gamma, translation, eye_coeff = self.split_coeffs(coeffs)
         rotation = self.compute_rotation_matrix(angles)
         l_eye_mat = self.compute_eye_rotation_matrix(eye_coeff[:, :2])
@@ -143,6 +146,15 @@ class FaceVerseModel(nn.Module):
             else:
                 rendered_img = self.renderer_mask(vs_t[self.face_mask>0].reshape(self.batch_size, self.mask_num, 3), colors_illumin[self.face_mask>0].reshape(self.batch_size, self.mask_num, 3), norm_r[self.face_mask>0].reshape(self.batch_size, self.mask_num, 3))
             
+            if render_uv:
+                rendered_img = rendered_img.detach().clone()
+                uv_img = self.renderer.render(vs_t[:, :self.ver_inds[2]], self.uvtex[:, :self.ver_inds[2]], self.tri[:self.tri_inds[2]])
+                return {'rendered_img': rendered_img,
+                        'uv_img': uv_img,
+                        'lms_proj': lms_proj,
+                        'colors': colors,
+                        'vertices': vs_t}
+            
             return {'rendered_img': rendered_img,
                     'lms_proj': lms_proj,
                     'colors': colors,
@@ -159,8 +171,8 @@ class FaceVerseModel(nn.Module):
         face_shape = jt.matmul(self.idBase, id_coeff.unsqueeze(2)).squeeze(2) + \
             jt.matmul(self.expBase, exp_coeff.unsqueeze(2)).squeeze(2) + self.meanshape
         face_shape = face_shape.view(self.batch_size, -1, 3)
-        face_shape[:, self.ver_inds[0]:self.ver_inds[1]] = jt.matmul(face_shape[:, self.ver_inds[0]:self.ver_inds[1]] - l_eye_mean, l_eye_mat) + l_eye_mean
-        face_shape[:, self.ver_inds[1]:self.ver_inds[2]] = jt.matmul(face_shape[:, self.ver_inds[1]:self.ver_inds[2]] - r_eye_mean, r_eye_mat) + r_eye_mean
+        face_shape[:, self.ver_inds[0]:self.ver_inds[1]] = jt.matmul(face_shape[:, self.ver_inds[0]:self.ver_inds[1]] - l_eye_mean, l_eye_mat) + l_eye_mean + 0.01
+        face_shape[:, self.ver_inds[1]:self.ver_inds[2]] = jt.matmul(face_shape[:, self.ver_inds[1]:self.ver_inds[2]] - r_eye_mean, r_eye_mat) + r_eye_mean + 0.01
         return face_shape
 
     def get_vs_lms(self, id_coeff, exp_coeff, l_eye_mat, r_eye_mat, l_eye_mean, r_eye_mean):

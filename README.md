@@ -17,13 +17,16 @@ Tsinghua University & Ant Group
 ## FaceVerse PCA model and pre-trained checkpoints
 Please download the zip file of **version 0** or **version 1** (recommended) and unzip it in the `./data` folder.
 
+FaceVerse V3, full head model and jittor-based tracking, has been released now.
+
 **FaceVerse version 0** Download:[[Google Drive]](https://drive.google.com/file/d/1V80ntpWj1BJb7jriWR2ipdcSQIFTHOwv/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1DNA3661303YUQG4QyO0Xvg)(6l10): paper version.
 
 ![v0](./docs/v0.jpg)
 
 **Fig.2** Single-image reconstruction results of version 0 (base model, detail model and expression refined final model).
 
-**FaceVerse version 1** Download:[[Google Drive]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1pUva9hBWP2ZONLRlWY6R1g)(x6wk):
+### FaceVerse version 1
+Download:[[Google Drive]](https://drive.google.com/file/d/1CWnZMxI_lH9lPo-_hbRvgM6b-KfSRtFJ/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1pUva9hBWP2ZONLRlWY6R1g)(x6wk):
 
 - Refine the shape of the base PCA model: symmetrical and more detailed.
 
@@ -35,7 +38,8 @@ Please download the zip file of **version 0** or **version 1** (recommended) and
 
 **Fig.3** Single-image reconstruction results of **version 1** (base model, detail model and expression refined final model).
 
-**FaceVerse version 2** Download:[[Google Drive]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1eRTafK8jAy9pTGyKfy2Biw)(9n9e) (only the PCA base model for video tracking, please use version 1 for image fitting):
+### FaceVerse version 2
+Download:[[Google Drive]](https://drive.google.com/file/d/1_ooP9hvR7kUUO8WhtXRU_D4nM5fr8BT_/view?usp=sharing) [[Baidu Netdisk]](https://pan.baidu.com/s/1eRTafK8jAy9pTGyKfy2Biw)(9n9e) (only the PCA base model for video tracking, please use version 1 for image fitting):
 
 - Fit the expression components to the 52 blendshapes defined by Apple. Please check 'exp_name_list' in faceverse_simple_v2.npy for the mapping relation.
 
@@ -51,9 +55,17 @@ python tracking_offline.py --input example/videos/test.mp4 --res_folder example/
 <img src="./docs/tracking_v2.gif" width="50%">
 <img src="./docs/tracking_v2_2.gif" width="50%">
 
-**Fig.4** Real-time online tracking results (30 fps) of **version 2**. The real-time version is accelerated by point-base rendering using cuda (this version has not been released).
+**Fig.4** Real-time online tracking results (30 fps) of **version 2**. This version is accelerated by point-base rendering using cuda (this version can be used in version 3).
 
-## Requirements
+### FaceVerse version 3
+
+Full head model & jittor-based tracking has been released now, See [FaceVersev3](./faceversev3_jittor/README.md) in `faceversev3_jittor` for more details.
+
+![v1](./docs/fv3.jpg)
+
+**Fig.5** FaceVerse version 3.
+
+## Requirements for v1&v2
 
 - Python 3.9
 - PyTorch 1.11.0
@@ -74,7 +86,7 @@ python3 setup.py install
 ```
 
 
-## Single-image fitting
+## Single-image fitting for v1
 Reconstructing a 3D face from a single image. There are three processes: 
 (a) reconstructed by PCA model; (b) refined by the detailed generator; (c) refined by the expression generator.
 
@@ -86,7 +98,7 @@ python3 fit_images.py --version 1 --input example/images --res_folder example/im
 
 Note: the detailed refinement is based on differentiable rendering, which is quite time-consuming (over 10 minutes). `--align` is used to crop the input image.
 
-## Video-based tracking using our PCA base model
+## Video-based tracking using our PCA base model for v1&v2
 
 ![offline_tracking](./docs/offline_tracking.gif)
 

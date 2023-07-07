@@ -125,8 +125,10 @@ class OfflineReader:
         self.num_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.frame_num = 0
         self.length_scale = 1.0
+        self.border = 500
         self.detected = False
         self.height, self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.face_tracker0 = mp.solutions.face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.face_tracker = mp.solutions.face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
     def get_data(self):
@@ -137,8 +139,8 @@ class OfflineReader:
                 self.frame_num += 1
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            if self.frame_num == 0:
-                results = self.face_tracker.process(frame)
+            if not self.detected:
+                results = self.face_tracker0.process(frame)
                 if not results.multi_face_landmarks:
                     print('No face detected in online reader!')
                     return False, False, [], [], []
@@ -147,9 +149,8 @@ class OfflineReader:
                 lms[:, 0] *= frame.shape[1]
                 lms[:, 1] *= frame.shape[0]
                 lms = lms.astype(np.int32)
-                self.border = 500
                 self.half_length = int(get_length(lms) * self.length_scale)
-                self.crop_center = lms[197].copy() + self.border
+                self.crop_center = lms[197] + self.border
                 print('First frame:', self.half_length, self.crop_center)
             
             frame_b = cv2.copyMakeBorder(frame, self.border, self.border, self.border, self.border, cv2.BORDER_CONSTANT, value=0)
@@ -178,7 +179,7 @@ class OfflineReader:
             return False, True, [], [], []
 
 
-class ImageReader_FFHQ:
+class ImageReader:
     def __init__(self, path, image_size):
         self.path = path
         self.imagelist = os.listdir(path)
@@ -200,6 +201,9 @@ class ImageReader_FFHQ:
             frame = cv2.resize(frame, (self.image_size, self.image_size))
         #frame = np.concatenate([frame, frame[-176:]], axis=0)
         
+        # 3 times for beter detection
+        results = self.face_tracker.process(frame)
+        results = self.face_tracker.process(frame)
         results = self.face_tracker.process(frame)
         if not results.multi_face_landmarks:
             print('No face detected in ' + self.imagelist[self.frame_num])
@@ -213,50 +217,4 @@ class ImageReader_FFHQ:
             lms[idx, 1] = int(landmark.y * self.image_size)
         self.frame_num += 1
         return True, frame, lms, self.frame_num, self.imagelist[self.frame_num - 1]
-
-
-class ImageReader:
-    def __init__(self, path, image_size):
-        self.path = path
-        self.subfile = os.listdir(path)
-        self.imagelist = []
-        for sub in self.subfile:
-            for f in os.listdir(os.path.join(path, sub)):
-                self.imagelist.append(os.path.join(sub, f))
-        self.num_frames = len(self.imagelist)
-        print(self.num_frames)
-        self.frame_num = 0
-        self.image_size = image_size
-        
-        self.face_tracker = mp.solutions.face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5, min_tracking_confidence=0.5)
-
-    def get_data(self):
-        if self.frame_num == self.num_frames:
-            print('Reach the end of the folder')
-            return False, True, [], [], []
-
-        frame = cv2.imread(os.path.join(self.path, self.imagelist[self.frame_num]), -1)[:, :, :3]
-        frame = frame[:, :, ::-1]
-        height, width = frame.shape[:2]
-        if height != self.image_size or width != self.image_size:
-            frame = cv2.resize(frame, (self.image_size, self.image_size))
-        #frame = np.concatenate([frame, frame[-176:]], axis=0)
-        try:
-            results = self.face_tracker.process(frame)
-            if not results.multi_face_landmarks:
-                print('No face detected in ' + self.imagelist[self.frame_num])
-                self.frame_num += 1
-                return False, False, [], [], []
-        except:
-            print('No face detected in ' + self.imagelist[self.frame_num])
-            self.frame_num += 1
-            with open("error.txt", 'a') as f:
-                f.write(self.imagelist[self.frame_num - 1] + '\n')
-            return False, False, [], [], []
-        lms = np.zeros((478, 2), dtype=np.int64)
-        for idx, landmark in enumerate(results.multi_face_landmarks[0].landmark):
-            lms[idx, 0] = int(landmark.x * self.image_size)
-            lms[idx, 1] = int(landmark.y * self.image_size)
-        self.frame_num += 1
-        return True, frame, lms, self.frame_num, self.imagelist[self.frame_num - 1].split(os.sep)[0] + '_' + self.imagelist[self.frame_num - 1].split(os.sep)[1]
 
