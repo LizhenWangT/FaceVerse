@@ -125,6 +125,13 @@ class Tracking(threading.Thread):
                 id_c, exp_c, tex_c, rot_c, gamma_c, trans_c, eye_c = self.fvm.split_coeffs(coeffs)
                 if self.frame_ind == 0 and self.args.save_for_styleavatar:
                     np.savetxt(os.path.join(args.res_folder, 'id.txt'), id_c[0].numpy(), fmt='%.3f')
+                    np.savetxt(os.path.join(args.res_folder, 'exp.txt'), exp_c[0].numpy(), fmt='%.3f')
+                # for styleavatar test
+                # id_fisrt = jt.array(np.loadtxt(os.path.join(args.res_folder, 'id.txt')).astype(np.float32)[None, :], dtype=jt.float32)
+                # exp_fisrt = jt.array(np.loadtxt(os.path.join(args.res_folder, 'exp.txt')).astype(np.float32)[None, :], dtype=jt.float32)
+                # coeffs[:, :self.fvm.id_dims] += id_fisrt
+                # !!!only if the first frame is neutral expression!!!
+                # !!!coeffs[:, self.fvm.id_dims:self.fvm.exp_dims] += exp_fisrt!!!
                 if self.args.save_for_styleavatar:
                     self.pred_dict = self.fvm(coeffs, render=True, surface=True, use_color=True, render_uv=True)
                 else:
