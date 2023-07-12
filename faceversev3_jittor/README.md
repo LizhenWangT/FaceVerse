@@ -8,6 +8,7 @@ Jittor-based tracking of faceverse model v3 (full head model, including two eyeb
 - opencv-python
 - numpy
 - tqdm
+- onnxruntime
 
 **Note: the first compilation with Jittor before running the python scripts is quite slow and unstable. Please be patient and wait for responses. Use ctrl+c to quit the process if your process has been stacked and try again. (My experience: you need to try about 3 times for the first time)**
 
@@ -17,10 +18,16 @@ Full head model with two eyeballs, download: https://drive.google.com/file/d/1Wr
 
 Put the model in `faceversev3_jittor/data/faceverse_v3_6_s.npy`
 
+For the preprocessing of [StyleAvatar](https://github.com/LizhenWangT/StyleAvatar): RobustVideoMatting for save_for_styleavatar, download: https://drive.google.com/file/d/1544XkEO2rysSduJ55eBMX-nksW01NSNM/view?usp=sharing
+
+Put the model in `faceversev3_jittor/data/rvm_1024_1024_32.onnx`
+
+**Note: rvm_1024_1024_32.onnx is generated from [RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting), we thank the authors of RVM for their work. You can use this onnx file as shown in `rvm.py` (only for 1024x1024 input images).**
+
 
 ### Usage
 
-offline:
+offline (including for the preprocessing of [StyleAvatar](https://github.com/LizhenWangT/StyleAvatar)):
 
 ```
 # for a single video 

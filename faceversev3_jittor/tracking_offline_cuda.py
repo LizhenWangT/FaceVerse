@@ -201,6 +201,9 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(args.res_folder, 'image'), exist_ok=True)
         os.makedirs(os.path.join(args.res_folder, 'uv'), exist_ok=True)
         os.makedirs(os.path.join(args.res_folder, 'render'), exist_ok=True)
+        os.makedirs(os.path.join(args.res_folder, 'back'), exist_ok=True)
+        import onnxruntime as ort
+        sess = ort.InferenceSession('data/rvm_1024_1024_32.onnx')
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 2, args.tar_size))
     #out_video = cv2.VideoWriter(os.path.join(args.res_folder, 'align.mp4'), fourcc, tracking.offreader.fps, (args.image_size, args.image_size))
@@ -224,6 +227,8 @@ if __name__ == '__main__':
             cv2.imwrite(os.path.join(args.res_folder, 'image', str(fn).zfill(6) + '.png'), cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'render', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size:args.tar_size * 2], cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'uv', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size * 2:], cv2.COLOR_RGB2BGR))
+            pha = sess.run(['out'], {'src': cv2.cvtColor(out, cv2.COLOR_RGB2BGR)[None, :, :, :].astype(np.float32)})
+            cv2.imwrite(os.path.join(args.res_folder, 'back', str(fn).zfill(6) + '.png'), pha[0][0, 0].astype(np.uint8))
         print('Write frames:', fn, 'still in queue:', tracking.queue_num)
     
     tracking.join()
