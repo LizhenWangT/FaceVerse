@@ -116,15 +116,16 @@ class OnlineDetecder(threading.Thread):
 
 
 class OfflineReader:
-    def __init__(self, path, tar_size, image_size, skip_frames=0):
+    def __init__(self, path, tar_size, image_size, crop_size, skip_frames=0):
         self.skip_frames = skip_frames
         self.tar_size = tar_size
+        self.crop_size = crop_size
         self.image_size = image_size
         self.cap = cv2.VideoCapture(path)
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
         self.num_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.frame_num = 0
-        self.length_scale = 1.0
+        self.length_scale = self.crop_size / self.image_size
         self.border = 500
         self.detected = False
         self.height, self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -156,8 +157,9 @@ class OfflineReader:
             frame_b = cv2.copyMakeBorder(frame, self.border, self.border, self.border, self.border, cv2.BORDER_CONSTANT, value=0)
             frame_b = Image.fromarray(frame_b[self.crop_center[1] - self.half_length:self.crop_center[1] + self.half_length, 
                                         self.crop_center[0] - self.half_length:self.crop_center[0] + self.half_length])
-            align = np.asarray(frame_b.resize((self.tar_size, self.tar_size), Image.ANTIALIAS))
-            outimg = np.asarray(frame_b.resize((self.image_size, self.image_size), Image.ANTIALIAS))
+            outimg = np.asarray(frame_b.resize((self.crop_size, self.crop_size), Image.ANTIALIAS))
+            side = (self.crop_size - self.image_size) // 2
+            align = cv2.resize(outimg[side:side + self.image_size, side:side + self.image_size], (self.tar_size, self.tar_size), cv2.INTER_AREA)
             
             results = self.face_tracker.process(align)
             if not results.multi_face_landmarks:

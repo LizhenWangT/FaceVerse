@@ -26,7 +26,7 @@ class Tracking(threading.Thread):
         self.args = args
         self.fvm, self.fvd = get_faceverse(batch_size=self.args.batch_size, focal=int(1315 / 512 * self.args.tar_size), img_size=self.args.tar_size)
         self.lm_weights = losses.get_lm_weights()
-        self.offreader = OfflineReader(args.input, args.tar_size, args.image_size, skip_frames=args.skip_frames)
+        self.offreader = OfflineReader(args.input, args.tar_size, args.image_size, args.crop_size, skip_frames=args.skip_frames)
         self.thread_lock = threading.Lock()
         self.frame_ind = 0
         self.thread_exit = False
@@ -172,6 +172,8 @@ if __name__ == '__main__':
                         help='batch_size is set to 1.')
     parser.add_argument('--skip_frames', type=int, default=0, 
                         help='Skip the first several frames.')
+    parser.add_argument('--crop_size', type=int, default=1024,
+                        help='size for output image.')
     parser.add_argument('--image_size', type=int, default=1024,
                         help='size for output image.')
     parser.add_argument('--tar_size', type=int, default=256,
@@ -227,8 +229,16 @@ if __name__ == '__main__':
             cv2.imwrite(os.path.join(args.res_folder, 'image', str(fn).zfill(6) + '.png'), cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'render', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size:args.tar_size * 2], cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'uv', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size * 2:], cv2.COLOR_RGB2BGR))
-            pha = sess.run(['out'], {'src': cv2.cvtColor(out, cv2.COLOR_RGB2BGR)[None, :, :, :].astype(np.float32)})
-            cv2.imwrite(os.path.join(args.res_folder, 'back', str(fn).zfill(6) + '.png'), pha[0][0, 0].astype(np.uint8))
+            if args.crop_size != 1024:
+                mask_in = cv2.resize(cv2.cvtColor(out, cv2.COLOR_RGB2BGR), (1024, 1024))
+            else:
+                mask_in = cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
+            pha = sess.run(['out'], {'src': mask_in[None, :, :, :].astype(np.float32)})
+            if args.crop_size != 1024:
+                mask_out = cv2.resize(pha[0][0, 0].astype(np.uint8), (args.crop_size, args.crop_size))
+            else:
+                mask_out = pha[0][0, 0].astype(np.uint8)
+            cv2.imwrite(os.path.join(args.res_folder, 'back', str(fn).zfill(6) + '.png'), mask_out)
         print('Write frames:', fn, 'still in queue:', tracking.queue_num)
     
     tracking.join()

@@ -22,7 +22,7 @@ For the preprocessing of [StyleAvatar](https://github.com/LizhenWangT/StyleAvata
 
 Put the model in `faceversev3_jittor/data/rvm_1024_1024_32.onnx`
 
-**Note: rvm_1024_1024_32.onnx is generated from [RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting), we thank the authors of RVM for their work. You can use this onnx file as shown in `rvm.py` (only for 1024x1024 input images).**
+**Note: rvm_1024_1024_32.onnx is generated from [RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting), we thank the authors of RVM for their work. You can use this onnx file as shown in `rvm.py` (only for 1024x1024 input images). `--crop_size` should be 1024 for styleunet and 1536 for full styleavatar.**
 
 
 ### Usage
@@ -33,8 +33,8 @@ offline (including for the preprocessing of [StyleAvatar](https://github.com/Liz
 # for a single video 
 # skip_frames is used to skip the first xx frames of the video, if there is no face in the first several frames
 python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --skip_frames 1
-# for a single video and save data for StyleAvatar (https://github.com/LizhenWangT/StyleAvatar)
-python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --save_for_styleavatar
+# for a single video and save data for StyleAvatar (https://github.com/LizhenWangT/StyleAvatar), crop_size should be 1024 for styleunet and 1536 for full styleavatar.
+python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --save_for_styleavatar --crop_size 1024/1536
 # for a image folder
 python fit_imgs_offline_cuda.py --input ../example/images --res_folder output/images
 ```
