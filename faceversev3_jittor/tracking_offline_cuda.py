@@ -129,9 +129,9 @@ class Tracking(threading.Thread):
                 # for styleavatar test
                 # id_fisrt = jt.array(np.loadtxt(os.path.join(args.res_folder, 'id.txt')).astype(np.float32)[None, :], dtype=jt.float32)
                 # exp_fisrt = jt.array(np.loadtxt(os.path.join(args.res_folder, 'exp.txt')).astype(np.float32)[None, :], dtype=jt.float32)
-                # coeffs[:, :self.fvm.id_dims] += id_fisrt
+                # coeffs[:, :self.fvm.id_dims] = id_fisrt
                 # !!!only if the first frame is neutral expression!!!
-                # !!!coeffs[:, self.fvm.id_dims:self.fvm.exp_dims] += exp_fisrt!!!
+                # !!!coeffs[:, self.fvm.id_dims:self.fvm.id_dims + self.fvm.exp_dims] += exp_fisrt!!!
                 if self.args.save_for_styleavatar:
                     self.pred_dict = self.fvm(coeffs, render=True, surface=True, use_color=True, render_uv=True)
                 else:
