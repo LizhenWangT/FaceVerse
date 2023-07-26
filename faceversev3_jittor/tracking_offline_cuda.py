@@ -207,7 +207,10 @@ if __name__ == '__main__':
         import onnxruntime as ort
         sess = ort.InferenceSession('data/rvm_1024_1024_32.onnx')
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 2, args.tar_size))
+    if not args.save_for_styleavatar:
+        tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 2, args.tar_size))
+    else:
+        tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 3, args.tar_size))
     #out_video = cv2.VideoWriter(os.path.join(args.res_folder, 'align.mp4'), fourcc, tracking.offreader.fps, (args.image_size, args.image_size))
     while True:
         if image_queue.empty():
@@ -242,7 +245,7 @@ if __name__ == '__main__':
         print('Write frames:', fn, 'still in queue:', tracking.queue_num)
     
     tracking.join()
-    out_video.release()
+    #out_video.release()
     tar_video.release()
 
 
