@@ -16,6 +16,8 @@ Jittor-based tracking of faceverse model v3 (full head model, including two eyeb
 
 Full head model with two eyeballs, download: https://drive.google.com/file/d/1WrQ1UNMY30YAl8WxAbqVb6ZsPEQ_FHW4/view?usp=sharing
 
+Baidu Netdisk: https://pan.baidu.com/s/1rtK5cIf7dJOu07NXy23H6A password:8d9p
+
 Put the model in `faceversev3_jittor/data/faceverse_v3_6_s.npy`
 
 For the preprocessing of [StyleAvatar](https://github.com/LizhenWangT/StyleAvatar): RobustVideoMatting for save_for_styleavatar, download: https://drive.google.com/file/d/1544XkEO2rysSduJ55eBMX-nksW01NSNM/view?usp=sharing

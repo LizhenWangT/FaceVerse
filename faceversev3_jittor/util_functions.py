@@ -15,7 +15,7 @@ def get_length(pred):
     mouth_c = (pred[13] + pred[14]) / 2
     length = distance(mouth_c, center) * 4.2 / 2
 
-    return length * 1.05
+    return length * 1.25
 
 
 def ply_from_array(points, faces, output_file):
