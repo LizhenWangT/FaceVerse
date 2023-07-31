@@ -18,6 +18,7 @@ from util_functions import get_length, ply_from_array_color
 num_queue = Queue()
 out_queue = Queue()
 image_queue = Queue()
+back_queue = Queue()
 
 
 class Tracking(threading.Thread):
@@ -26,7 +27,7 @@ class Tracking(threading.Thread):
         self.args = args
         self.fvm, self.fvd = get_faceverse(batch_size=self.args.batch_size, focal=int(1315 / 512 * self.args.tar_size), img_size=self.args.tar_size)
         self.lm_weights = losses.get_lm_weights()
-        self.offreader = OfflineReader(args.input, args.tar_size, args.image_size, args.crop_size, skip_frames=args.skip_frames)
+        self.offreader = OfflineReader(args.input, args.back, args.tar_size, args.image_size, args.crop_size, skip_frames=args.skip_frames)
         self.thread_lock = threading.Lock()
         self.frame_ind = 0
         self.thread_exit = False
@@ -43,7 +44,7 @@ class Tracking(threading.Thread):
     def run(self):
         while not self.thread_exit:
             # load data
-            detected, align, lms_detect, outimg, frame_num = self.offreader.get_data()
+            detected, align, lms_detect, outimg, backimg, frame_num = self.offreader.get_data()
             if not detected:
                 if not align:
                     continue
@@ -60,12 +61,11 @@ class Tracking(threading.Thread):
                 nonrigid_optimizer = jt.optim.Adam([self.fvm.id_tensor, self.fvm.gamma_tensor, self.fvm.tex_tensor,
                                                     self.fvm.rot_tensor, self.fvm.trans_tensor, self.fvm.eye_tensor], lr=5e-3, betas=(0.5, 0.9))
             else:
-                trans_optimizer = jt.optim.Adam([self.fvm.trans_tensor],  lr=1e-1, betas=(0.8, 0.95))
                 rigid_optimizer = jt.optim.Adam([self.fvm.rot_tensor, self.fvm.trans_tensor, self.fvm.exp_tensor, self.fvm.eye_tensor], 
-                                                    lr=1e-2, betas=(0.5, 0.9))
+                                                    lr=1e-3, betas=(0.5, 0.9))
                 nonrigid_optimizer = jt.optim.Adam([self.fvm.exp_tensor, self.fvm.gamma_tensor, 
-                                                    self.fvm.rot_tensor, self.fvm.trans_tensor, self.fvm.eye_tensor], lr=5e-3, betas=(0.5, 0.9))
-                num_iters_rf = 50
+                                                    self.fvm.rot_tensor, self.fvm.trans_tensor, self.fvm.eye_tensor], lr=1e-3, betas=(0.5, 0.9))
+                num_iters_rf = 100
                 num_iters_nrf = 30
 
             scale = ((lms_detect - lms_detect.mean(0)) ** 2).mean() ** 0.5
@@ -124,14 +124,27 @@ class Tracking(threading.Thread):
                 coeffs[:, self.fvm.id_dims + 8:self.fvm.id_dims + 10] = self.eyes_refine(coeffs[:, self.fvm.id_dims + 8:self.fvm.id_dims + 10])
                 id_c, exp_c, tex_c, rot_c, gamma_c, trans_c, eye_c = self.fvm.split_coeffs(coeffs)
                 if self.frame_ind == 0 and self.args.save_for_styleavatar:
-                    np.savetxt(os.path.join(args.res_folder, 'id.txt'), id_c[0].numpy(), fmt='%.3f')
-                    np.savetxt(os.path.join(args.res_folder, 'exp.txt'), exp_c[0].numpy(), fmt='%.3f')
+                    np.savetxt(os.path.join(self.args.res_folder, 'id.txt'), id_c[0].numpy(), fmt='%.3f')
+                    np.savetxt(os.path.join(self.args.res_folder, 'exp.txt'), exp_c[0].numpy(), fmt='%.3f')
                 # for styleavatar test
-                # id_fisrt = jt.array(np.loadtxt(os.path.join(args.res_folder, 'id.txt')).astype(np.float32)[None, :], dtype=jt.float32)
-                # exp_fisrt = jt.array(np.loadtxt(os.path.join(args.res_folder, 'exp.txt')).astype(np.float32)[None, :], dtype=jt.float32)
-                # coeffs[:, :self.fvm.id_dims] = id_fisrt
-                # !!!only if the first frame is neutral expression!!!
-                # !!!coeffs[:, self.fvm.id_dims:self.fvm.id_dims + self.fvm.exp_dims] += exp_fisrt!!!
+                if self.args.id_folder is not None:
+                    id_fisrt = jt.array(np.loadtxt(os.path.join(self.args.id_folder, 'id.txt')).astype(np.float32)[None, :], dtype=jt.float32)
+                    exp_fisrt = jt.array(np.loadtxt(os.path.join(self.args.id_folder, 'exp.txt')).astype(np.float32)[None, :], dtype=jt.float32)
+                    coeffs[:, :self.fvm.id_dims] += id_fisrt
+                    # !!!only if the first frame is neutral expression!!!
+                    if self.args.first_frame_is_neutral:
+                        coeffs[:, self.fvm.id_dims:self.fvm.id_dims + self.fvm.exp_dims] += exp_fisrt
+                if self.args.smooth:
+                    if self.frame_ind == 0:
+                        self.coeff_0 = coeffs.detach().clone()
+                        self.coeff_1 = coeffs.detach().clone()
+                        self.coeff_2 = coeffs.detach().clone()
+                    else:
+                        self.coeff_0 = self.coeff_1
+                        self.coeff_1 = self.coeff_2
+                        self.coeff_2 = coeffs.detach().clone()
+                    coeffs = (self.coeff_0 + self.coeff_1 + self.coeff_2) / 3
+
                 if self.args.save_for_styleavatar:
                     self.pred_dict = self.fvm(coeffs, render=True, surface=True, use_color=True, render_uv=True)
                 else:
@@ -147,6 +160,8 @@ class Tracking(threading.Thread):
                 self.thread_lock.acquire()
                 num_queue.put(frame_num)
                 out_queue.put(outimg)
+                if self.args.back is not None:
+                    back_queue.put(backimg)
                 image_queue.put(drive_img)
                 self.queue_num += 1
                 self.thread_lock.release()
@@ -162,8 +177,16 @@ if __name__ == '__main__':
 
     parser.add_argument('--input', type=str, required=True,
                         help='input video path')
+    parser.add_argument('--back', type=str, default=None,
+                        help='background video path')
     parser.add_argument('--res_folder', type=str, required=True,
                         help='output directory')
+    parser.add_argument('--id_folder', type=str, default=None,
+                        help='id directory')
+    parser.add_argument('--first_frame_is_neutral', action='store_true',
+                        help='only if the first frame is neutral expression')
+    parser.add_argument('--smooth', action='store_true',
+                        help='smooth between 3 frames')
     parser.add_argument('--use_dr', action='store_true',
                         help='Can only be used on linux system.')
     parser.add_argument('--save_for_styleavatar', action='store_true',
@@ -207,10 +230,10 @@ if __name__ == '__main__':
         import onnxruntime as ort
         sess = ort.InferenceSession('data/rvm_1024_1024_32.onnx')
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    if not args.save_for_styleavatar:
-        tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 2, args.tar_size))
-    else:
+    if args.save_for_styleavatar:
         tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 3, args.tar_size))
+    else:
+        tar_video = cv2.VideoWriter(os.path.join(args.res_folder, 'track.mp4'), fourcc, tracking.offreader.fps, (args.tar_size * 2, args.tar_size))
     #out_video = cv2.VideoWriter(os.path.join(args.res_folder, 'align.mp4'), fourcc, tracking.offreader.fps, (args.image_size, args.image_size))
     while True:
         if image_queue.empty():
@@ -225,22 +248,26 @@ if __name__ == '__main__':
         cv2.imshow('faceverse_offline', tar[:, :, ::-1])
         keyc = cv2.waitKey(1)
         if keyc == 27 or tracking.thread_exit == True:
+            tracking.thread_exit = True
             break
         #out_video.write(cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
-        tar_video.write(cv2.cvtColor(tar[:, :args.tar_size * 2], cv2.COLOR_RGB2BGR))
+        tar_video.write(cv2.cvtColor(tar, cv2.COLOR_RGB2BGR))
         if args.save_for_styleavatar:
             cv2.imwrite(os.path.join(args.res_folder, 'image', str(fn).zfill(6) + '.png'), cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'render', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size:args.tar_size * 2], cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'uv', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size * 2:], cv2.COLOR_RGB2BGR))
-            if args.crop_size != 1024:
-                mask_in = cv2.resize(cv2.cvtColor(out, cv2.COLOR_RGB2BGR), (1024, 1024))
+            if args.back is None:
+                if args.crop_size != 1024:
+                    mask_in = cv2.resize(cv2.cvtColor(out, cv2.COLOR_RGB2BGR), (1024, 1024))
+                else:
+                    mask_in = cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
+                pha = sess.run(['out'], {'src': mask_in[None, :, :, :].astype(np.float32)})
+                if args.crop_size != 1024:
+                    mask_out = cv2.resize(pha[0][0, 0].astype(np.uint8), (args.crop_size, args.crop_size))
+                else:
+                    mask_out = pha[0][0, 0].astype(np.uint8)
             else:
-                mask_in = cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
-            pha = sess.run(['out'], {'src': mask_in[None, :, :, :].astype(np.float32)})
-            if args.crop_size != 1024:
-                mask_out = cv2.resize(pha[0][0, 0].astype(np.uint8), (args.crop_size, args.crop_size))
-            else:
-                mask_out = pha[0][0, 0].astype(np.uint8)
+                mask_out = back_queue.get()
             cv2.imwrite(os.path.join(args.res_folder, 'back', str(fn).zfill(6) + '.png'), mask_out)
         print('Write frames:', fn, 'still in queue:', tracking.queue_num)
     
