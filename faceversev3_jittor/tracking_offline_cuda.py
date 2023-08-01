@@ -18,7 +18,6 @@ from util_functions import get_length, ply_from_array_color
 num_queue = Queue()
 out_queue = Queue()
 image_queue = Queue()
-back_queue = Queue()
 
 
 class Tracking(threading.Thread):
@@ -27,7 +26,7 @@ class Tracking(threading.Thread):
         self.args = args
         self.fvm, self.fvd = get_faceverse(batch_size=self.args.batch_size, focal=int(1315 / 512 * self.args.tar_size), img_size=self.args.tar_size)
         self.lm_weights = losses.get_lm_weights()
-        self.offreader = OfflineReader(args.input, args.back, args.tar_size, args.image_size, args.crop_size, skip_frames=args.skip_frames)
+        self.offreader = OfflineReader(args.input, args.tar_size, args.image_size, args.crop_size, skip_frames=args.skip_frames)
         self.thread_lock = threading.Lock()
         self.frame_ind = 0
         self.thread_exit = False
@@ -44,7 +43,7 @@ class Tracking(threading.Thread):
     def run(self):
         while not self.thread_exit:
             # load data
-            detected, align, lms_detect, outimg, backimg, frame_num = self.offreader.get_data()
+            detected, align, lms_detect, outimg, frame_num = self.offreader.get_data()
             if not detected:
                 if not align:
                     continue
@@ -165,8 +164,6 @@ class Tracking(threading.Thread):
                 self.thread_lock.acquire()
                 num_queue.put(frame_num)
                 out_queue.put(outimg)
-                if self.args.back is not None:
-                    back_queue.put(backimg)
                 image_queue.put(drive_img)
                 self.queue_num += 1
                 self.thread_lock.release()
@@ -182,8 +179,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--input', type=str, required=True,
                         help='input video path')
-    parser.add_argument('--back', type=str, default=None,
-                        help='background video path')
     parser.add_argument('--res_folder', type=str, required=True,
                         help='output directory')
     parser.add_argument('--id_folder', type=str, default=None,
@@ -261,18 +256,15 @@ if __name__ == '__main__':
             cv2.imwrite(os.path.join(args.res_folder, 'image', str(fn).zfill(6) + '.png'), cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'render', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size:args.tar_size * 2], cv2.COLOR_RGB2BGR))
             cv2.imwrite(os.path.join(args.res_folder, 'uv', str(fn).zfill(6) + '.png'), cv2.cvtColor(tar[:, args.tar_size * 2:], cv2.COLOR_RGB2BGR))
-            if args.back is None:
-                if args.crop_size != 1024:
-                    mask_in = cv2.resize(cv2.cvtColor(out, cv2.COLOR_RGB2BGR), (1024, 1024))
-                else:
-                    mask_in = cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
-                pha = sess.run(['out'], {'src': mask_in[None, :, :, :].astype(np.float32)})
-                if args.crop_size != 1024:
-                    mask_out = cv2.resize(pha[0][0, 0].astype(np.uint8), (args.crop_size, args.crop_size))
-                else:
-                    mask_out = pha[0][0, 0].astype(np.uint8)
+            if args.crop_size != 1024:
+                mask_in = cv2.resize(cv2.cvtColor(out, cv2.COLOR_RGB2BGR), (1024, 1024))
             else:
-                mask_out = back_queue.get()
+                mask_in = cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
+            pha = sess.run(['out'], {'src': mask_in[None, :, :, :].astype(np.float32)})
+            if args.crop_size != 1024:
+                mask_out = cv2.resize(pha[0][0, 0].astype(np.uint8), (args.crop_size, args.crop_size))
+            else:
+                mask_out = pha[0][0, 0].astype(np.uint8)
             cv2.imwrite(os.path.join(args.res_folder, 'back', str(fn).zfill(6) + '.png'), mask_out)
         print('Write frames:', fn, 'still in queue:', tracking.queue_num)
     
