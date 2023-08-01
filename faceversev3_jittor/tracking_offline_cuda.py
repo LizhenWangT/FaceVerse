@@ -247,7 +247,7 @@ if __name__ == '__main__':
         tracking.queue_num -= 1
         cv2.imshow('faceverse_offline', tar[:, :, ::-1])
         keyc = cv2.waitKey(1)
-        if keyc == 27 or tracking.thread_exit == True:
+        if keyc == ord('q') or keyc == 27 or tracking.thread_exit == True:
             tracking.thread_exit = True
             break
         #out_video.write(cv2.cvtColor(out, cv2.COLOR_RGB2BGR))
