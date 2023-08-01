@@ -125,6 +125,7 @@ class Tracking(threading.Thread):
                 if self.frame_ind == 0 and self.args.save_for_styleavatar:
                     np.savetxt(os.path.join(self.args.res_folder, 'id.txt'), id_c[0].numpy(), fmt='%.3f')
                     np.savetxt(os.path.join(self.args.res_folder, 'exp.txt'), exp_c[0].numpy(), fmt='%.3f')
+                    self.first_exp = exp_c.detach().clone()
                 # for styleavatar test
                 if self.args.id_folder is not None:
                     id_fisrt = jt.array(np.loadtxt(os.path.join(self.args.id_folder, 'id.txt')).astype(np.float32)[None, :], dtype=jt.float32)
@@ -132,7 +133,7 @@ class Tracking(threading.Thread):
                     coeffs[:, :self.fvm.id_dims] += id_fisrt
                     # !!!only if the first frame is neutral expression!!!
                     if self.args.first_frame_is_neutral:
-                        coeffs[:, self.fvm.id_dims:self.fvm.id_dims + self.fvm.exp_dims] += exp_fisrt
+                        coeffs[:, self.fvm.id_dims:self.fvm.id_dims + self.fvm.exp_dims] += exp_fisrt - self.first_exp
                 if self.args.smooth:
                     if self.frame_ind == 0:
                         self.coeff_0 = coeffs.detach().clone()
