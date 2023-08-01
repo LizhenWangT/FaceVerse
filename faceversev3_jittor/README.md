@@ -36,11 +36,13 @@ offline (including for the preprocessing of [StyleAvatar](https://github.com/Liz
 ```
 # for a single video 
 # skip_frames is used to skip the first xx frames of the video, if there is no face in the first several frames
-python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --skip_frames 1
+# --smooth to smooth the coeffs between 3 frames
+python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --skip_frames 1 (--smooth)
 
 # Preprocessing for StyleAvatar(https://github.com/LizhenWangT/StyleAvatar).
 # crop_size should be 1024 for styleunet and 1536 for full styleavatar.
-python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --save_for_styleavatar --crop_size 1024/1536
+# --smooth to smooth the coeffs between 3 frames, add this if you need to test on the training video.
+python tracking_offline_cuda.py --input ../example/videos/test.mp4 --res_folder output/video --save_for_styleavatar --crop_size 1024/1536 (--smooth)
 
 # Testing for StyleAvatar(https://github.com/LizhenWangT/StyleAvatar)
 # crop_size should be 1024 for styleunet and 1536 for full styleavatar.
