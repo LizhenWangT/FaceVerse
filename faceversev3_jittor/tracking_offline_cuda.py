@@ -139,11 +139,16 @@ class Tracking(threading.Thread):
                         self.coeff_0 = coeffs.detach().clone()
                         self.coeff_1 = coeffs.detach().clone()
                         self.coeff_2 = coeffs.detach().clone()
+                        out_queue.put(outimg)
+                        self.align_last = align
                     else:
                         self.coeff_0 = self.coeff_1
                         self.coeff_1 = self.coeff_2
                         self.coeff_2 = coeffs.detach().clone()
                     coeffs = (self.coeff_0 + self.coeff_1 + self.coeff_2) / 3
+                    align_tmp = align
+                    align = self.align_last
+                    self.align_last = align_tmp
 
                 if self.args.save_for_styleavatar:
                     self.pred_dict = self.fvm(coeffs, render=True, surface=True, use_color=True, render_uv=True)
