@@ -127,7 +127,7 @@ class Tracking(threading.Thread):
                     np.savetxt(os.path.join(self.args.res_folder, 'exp.txt'), exp_c[0].numpy(), fmt='%.3f')
                     self.first_exp = exp_c.detach().clone()
                 # for styleavatar test
-                if self.args.id_folder is not None:
+                if self.args.save_for_styleavatar and self.args.id_folder is not None:
                     id_fisrt = jt.array(np.loadtxt(os.path.join(self.args.id_folder, 'id.txt')).astype(np.float32)[None, :], dtype=jt.float32)
                     exp_fisrt = jt.array(np.loadtxt(os.path.join(self.args.id_folder, 'exp.txt')).astype(np.float32)[None, :], dtype=jt.float32)
                     coeffs[:, :self.fvm.id_dims] += id_fisrt
