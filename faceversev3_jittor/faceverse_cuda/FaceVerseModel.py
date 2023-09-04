@@ -31,17 +31,19 @@ class FaceVerseModel(nn.Module):
         
         self.meanshape = jt.array(meanshape.reshape(1, -1), dtype=jt.float32).stop_grad()
         self.meantex = jt.array(model_dict['meantex'].reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1)
+        self.parsingtex = jt.array(model_dict['parsing'].reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1).reshape(self.batch_size, -1, 3)
+        self.uvtexf = jt.array(model_dict['uvtex'].reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1).reshape(self.batch_size, -1, 3)
         uvtex = model_dict['uvtex']
         uvtex[:self.ver_inds[0]] *= model_dict['face_mask'][:self.ver_inds[0], None]
         self.uvtex = jt.array(uvtex.reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1).reshape(self.batch_size, -1, 3)
 
         idBase = model_dict['idBase'].reshape(-1, 150)
-        exBase = model_dict['exBase_52'].reshape(-1, 3, 52)
+        exBase = model_dict['exBase'].reshape(-1, 3, 171)
         idBase[:, [1, 2]] *= -1
         idBase = idBase * 0.01
         exBase[:, [1, 2]] *= -1
         exBase = exBase * 0.01
-        exBase = exBase.reshape(-1, 52)
+        exBase = exBase.reshape(-1, 171)
         texBase = model_dict['texBase'].reshape(-1, 251)
 
         self.idBase = jt.array(idBase, dtype=jt.float32).stop_grad().unsqueeze(0).repeat(self.batch_size, 1, 1)
@@ -51,10 +53,6 @@ class FaceVerseModel(nn.Module):
         self.tri = jt.array(model_dict['tri'], dtype=jt.float32).stop_grad()
         self.tri = self.tri[:, [0, 2, 1]]
         self.point_buf = jt.array(model_dict['point_buf'], dtype=jt.float32).stop_grad()
-        self.face_mask = jt.array(model_dict['face_mask'], dtype=jt.float32).stop_grad()
-        self.face_mask[int(self.ver_inds[2]):] += 1
-        self.mask_num = int(jt.sum(self.face_mask).numpy()[0])
-        self.face_mask = self.face_mask.unsqueeze(0).unsqueeze(2).repeat(self.batch_size, 1, 3)
 
         self.num_vertex = model_dict['meanshape'].shape[0]
         self.id_dims = self.idBase.shape[2]
@@ -66,8 +64,6 @@ class FaceVerseModel(nn.Module):
 
         self.renderer = Renderer(K=self.p_mat, R=self.R, t=self.camera_pos, image_size=self.img_size, 
                                  ver_num=int(self.ver_inds[2]), batch_size=self.batch_size)
-        self.renderer_mask = Renderer(K=self.p_mat, R=self.R, t=self.camera_pos, image_size=self.img_size, 
-                                 ver_num=self.mask_num, batch_size=self.batch_size)
         
         # for tracking by landmarks
         self.kp_inds_view = jt.concat([self.kp_inds[:, None] * 3, self.kp_inds[:, None] * 3 + 1, self.kp_inds[:, None] * 3 + 2], dim=1).flatten()
@@ -131,8 +127,7 @@ class FaceVerseModel(nn.Module):
             vs_t = self.rigid_transform(vs, rotation, translation)
 
             lms_t = self.get_lms(vs_t)
-            lms_proj = self.project_vs(lms_t)
-            lms_proj = jt.stack([lms_proj[:, :, 0], lms_proj[:, :, 1]], dim=2)
+            lms_proj = self.project_vs(lms_t)[:, :, :2]
             colors = self.get_color(tex_coeff)
             norm = self.compute_norm(vs, self.tri, self.point_buf)
             norm_r = nn.bmm(norm, rotation)
@@ -141,10 +136,7 @@ class FaceVerseModel(nn.Module):
             else:
                 colors_illumin = self.add_illumination(colors * 0 + 130, norm_r, self.gamma_zeros)
             
-            if surface:
-                rendered_img = self.renderer.render(vs_t[:, :self.ver_inds[2]], colors_illumin[:, :self.ver_inds[2]], self.tri[:self.tri_inds[2]])
-            else:
-                rendered_img = self.renderer_mask(vs_t[self.face_mask>0].reshape(self.batch_size, self.mask_num, 3), colors_illumin[self.face_mask>0].reshape(self.batch_size, self.mask_num, 3), norm_r[self.face_mask>0].reshape(self.batch_size, self.mask_num, 3))
+            rendered_img = self.renderer.render(vs_t[:, :self.ver_inds[2]], colors_illumin[:, :self.ver_inds[2]], self.tri[:self.tri_inds[2]])
             
             if render_uv:
                 rendered_img = rendered_img.detach().clone()
@@ -163,10 +155,9 @@ class FaceVerseModel(nn.Module):
             lms = self.get_vs_lms(id_coeff, exp_coeff, l_eye_mat, r_eye_mat, l_eye_mean, r_eye_mean)
             lms_t = self.rigid_transform(lms, rotation, translation)
 
-            lms_proj = self.project_vs(lms_t)
-            lms_proj = jt.stack([lms_proj[:, :, 0], lms_proj[:, :, 1]], dim=2)
+            lms_proj = self.project_vs(lms_t)[:, :, :2]
             return {'lms_proj': lms_proj}
-
+    
     def get_vs(self, id_coeff, exp_coeff, l_eye_mat, r_eye_mat, l_eye_mean, r_eye_mean):
         face_shape = jt.matmul(self.idBase, id_coeff.unsqueeze(2)).squeeze(2) + \
             jt.matmul(self.expBase, exp_coeff.unsqueeze(2)).squeeze(2) + self.meanshape
@@ -236,7 +227,7 @@ class FaceVerseModel(nn.Module):
         vs += self.camera_pos
         aug_projection = jt.matmul(vs, self.p_mat.repeat((self.batch_size, 1, 1)).permute((0, 2, 1)))
         face_projection = aug_projection[:, :, :2] / aug_projection[:, :, 2:3]
-        return face_projection
+        return jt.stack([face_projection[:, :, 0], face_projection[:, :, 1], aug_projection[:, :, 2]], dim=2)
 
     def compute_eye_rotation_matrix(self, eye):
         # 0 left_eye + down - up
