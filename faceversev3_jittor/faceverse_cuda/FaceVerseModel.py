@@ -37,12 +37,13 @@ class FaceVerseModel(nn.Module):
         uvtex[:self.ver_inds[0]] *= model_dict['face_mask'][:self.ver_inds[0], None]
         self.uvtex = jt.array(uvtex.reshape(1, -1), dtype=jt.float32).stop_grad().repeat(self.batch_size, 1).reshape(self.batch_size, -1, 3)
 
-        idBase = model_dict['idBase'].reshape(-1, 150)
+        idBase = model_dict['idBase'].reshape(-1, 3, 150)
         exBase = model_dict['exBase_52'].reshape(-1, 3, 52)
         idBase[:, [1, 2]] *= -1
         idBase = idBase * 0.01
         exBase[:, [1, 2]] *= -1
         exBase = exBase * 0.01
+        idBase = idBase.reshape(-1, 150)
         exBase = exBase.reshape(-1, 52)
         texBase = model_dict['texBase'].reshape(-1, 251)
 
