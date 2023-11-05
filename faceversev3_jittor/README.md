@@ -3,7 +3,7 @@ Jittor-based tracking of faceverse model v3 (full head model, including two eyeb
 
 ### Requirements
 
-- jittor
+- jittor==1.3.5.19 (Passed on 1.3.4 or 1.3.5, failed on 1.3.8)
 - mediapipe
 - opencv-python
 - numpy
