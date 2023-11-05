@@ -8,7 +8,7 @@ Jittor-based tracking of faceverse model v3 (full head model, including two eyeb
 - opencv-python
 - numpy
 - tqdm
-- onnxruntime
+- onnxruntime==1.12.1
 
 **Note: the first compilation with Jittor before running the python scripts is quite slow and unstable. Please be patient and wait for responses. Use ctrl+c to quit the process if your process has been stacked and try again. (My experience: you need to try about 3 times for the first time)**
 
