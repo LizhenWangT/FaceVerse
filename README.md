@@ -133,7 +133,7 @@ year={2022},
 ```
 
 ## Contact
-- Lizhen Wang [(wlz18@mails.tsinghua.edu.cn)](wlz18@mails.tsinghua.edu.cn)
+- Lizhen Wang [(wanglz14@126.com)](wanglz14@126.com)
 - Zhiyuan Chen [(juzhen.czy@antfin.com)](juzhen.czy@antfin.com)
 - Yebin Liu [(liuyebin@mail.tsinghua.edu.cn)](mailto:liuyebin@mail.tsinghua.edu.cn)
 
