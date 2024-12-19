@@ -14,6 +14,12 @@ Tsinghua University & Ant Group
 ![results](./docs/results.jpg)
 **Fig.1** Single-image fitting results using FaceVerse model.
 
+### FaceVerse version 4
+
+Updated on December 19, 2024
+
+We have provided an easy-to-use and faster version in this new Git (https://github.com/LizhenWangT/FaceVerse_v4), which can directly predict parameters by a ResNet50.
+
 ## FaceVerse PCA model and pre-trained checkpoints
 Please download the zip file of **version 0** or **version 1** (recommended) and unzip it in the `./data` folder.
 
